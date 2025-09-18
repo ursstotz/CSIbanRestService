@@ -49,6 +49,32 @@ Service available at `http://localhost:8080`.
 
 ---
 
+## Azure CLI Installation
+To deploy with CI/CD, you need the **Azure CLI (`az`)** installed locally or in your CI environment.
+
+### Install via MSI (Windows)
+1. Download the installer: [Azure CLI MSI](https://aka.ms/installazurecliwindows)
+2. Run the installer and follow the setup wizard.
+3. After installation, verify:
+   ```powershell
+   az --version
+   ```
+
+### Install via Scoop (Windows)
+If you have [Scoop](https://scoop.sh/) installed:
+```powershell
+scoop install azure-cli
+```
+
+### Login to Azure
+After installation:
+```powershell
+az login
+```
+This opens a browser window for authentication.
+
+---
+
 ## CI/CD with GitHub Workflows
 The directory `.github/workflows/` contains GitHub Actions workflows.
 
@@ -83,3 +109,4 @@ With CI/CD configured:
 ```bash
 curl "https://<your-app-name>.azurewebsites.net/iban/fix?iban=CH9300762011623852957"
 curl "https://<your-app-name>.azurewebsites.net/version"
+```
