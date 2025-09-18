@@ -110,3 +110,44 @@ With CI/CD configured:
 curl "https://<your-app-name>.azurewebsites.net/iban/fix?iban=CH9300762011623852957"
 curl "https://<your-app-name>.azurewebsites.net/version"
 ```
+
+---
+
+## Azure CLI Commands for Setup
+Here are the key commands to create the required resources.
+
+### 1. Create a Resource Group
+```bash
+az group create --name rg-csiban-demo --location westeurope
+```
+
+### 2. Create an Azure Container Registry (ACR)
+```bash
+az acr create --resource-group rg-csiban-demo --name csibanacr --sku Basic
+```
+
+### 3. Create an App Service Plan
+```bash
+az appservice plan create --name csiban-plan --resource-group rg-csiban-demo --sku B1 --is-linux
+```
+
+### 4. Create a Web App for Containers
+```bash
+az webapp create \
+  --resource-group rg-csiban-demo \
+  --plan csiban-plan \
+  --name csibanrestservice-demo \
+  --deployment-container-image-name csibanacr.azurecr.io/csibanrestservice:latest
+```
+
+### 5. Configure Web App to use port 8080
+```bash
+az webapp config appsettings set \
+  --resource-group rg-csiban-demo \
+  --name csibanrestservice-demo \
+  --settings WEBSITES_PORT=8080
+```
+
+---
+
+With these commands, your Azure environment is prepared. The GitHub Actions workflow will then build and deploy the container automatically.
