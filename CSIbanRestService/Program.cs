@@ -1,12 +1,15 @@
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Hosting;
+using System.Reflection;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
+// Add OpenAPI/Swagger support
 builder.Services.AddOpenApi();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
@@ -14,28 +17,53 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-var summaries = new[]
+// Endpoint: Fix IBAN (calculate correct mod 97 check digits)
+app.MapGet("/iban/fix", (string iban) =>
 {
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
+    string normalized = iban.Replace(" ", "").ToUpper();
 
-app.MapGet("/weatherforecast", () =>
+    if (normalized.Length < 5)
+    {
+        return Results.BadRequest("Invalid IBAN format");
+    }
+
+    string countryCode = normalized.Substring(0, 2);
+    string bban = normalized.Substring(4);
+    string rearranged = bban + countryCode + "00";
+
+    // Convert letters to numbers
+    string numericIban = "";
+    foreach (char c in rearranged)
+    {
+        if (char.IsLetter(c))
+            numericIban += (c - 'A' + 10).ToString();
+        else
+            numericIban += c;
+    }
+
+    int checkDigits = 98 - Mod97(numericIban);
+    string validIban = countryCode + checkDigits.ToString("D2") + bban;
+
+    return Results.Ok(validIban);
+});
+
+// Endpoint: Version
+app.MapGet("/version", () =>
 {
-    var forecast =  Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast");
+    var version = Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "unknown";
+    return Results.Ok(version);
+});
 
 app.Run();
 
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
+// Helper function for mod 97 calculation
+static int Mod97(string input)
 {
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
+    int checksum = 0;
+    foreach (char c in input)
+    {
+        int digit = c - '0';
+        checksum = (checksum * 10 + digit) % 97;
+    }
+    return checksum;
 }
