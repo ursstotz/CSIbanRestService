@@ -1,0 +1,20 @@
+@startuml
+actor Developer
+
+rectangle "GitHub" {
+  Developer --> (Commit & Push)
+  (Commit & Push) --> (GitHub Actions Workflow in .github/workflows/ci-cd.yml)
+  (GitHub Actions Workflow in .github/workflows/ci-cd.yml) --> (Docker Build)
+  (Docker Build) --> (Push Image to ACR)
+}
+
+rectangle "Azure" {
+  (Push Image to ACR) --> (Azure Container Registry)
+  (Azure Container Registry) --> (Deploy to Web App)
+  (Deploy to Web App) --> (Azure Web App for Containers)
+  (Azure Web App for Containers) --> (CSIbanRestService Running)
+}
+
+Developer --> (Access Endpoints)
+(Access Endpoints) --> (CSIbanRestService Running)
+@enduml

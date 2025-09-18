@@ -156,29 +156,11 @@ az webapp config appsettings set \
 ---
 
 ## CI/CD Flow Diagram (Detailed)
-```plantuml
-@startuml
-actor Developer
-
-rectangle "GitHub" {
-  Developer --> (Commit & Push)
-  (Commit & Push) --> (GitHub Actions Workflow in .github/workflows/ci-cd.yml)
-  (GitHub Actions Workflow in .github/workflows/ci-cd.yml) --> (Docker Build)
-  (Docker Build) --> (Push Image to ACR)
-}
-
-rectangle "Azure" {
-  (Push Image to ACR) --> (Azure Container Registry)
-  (Azure Container Registry) --> (Deploy to Web App)
-  (Deploy to Web App) --> (Azure Web App for Containers)
-  (Azure Web App for Containers) --> (CSIbanRestService Running)
-}
-
-Developer --> (Access Endpoints)
-(Access Endpoints) --> (CSIbanRestService Running)
-@enduml
-```
-
 ![GitHub_Azure_CI-CD.svg](docs/diagrams/GitHub_Azure_CI-CD.svg)
 
-This detailed diagram shows each stage: Code commit → GitHub Actions workflow in `.github/workflows/ci-cd.yml` → Docker build → Push to ACR → Deploy to Azure Web App → Running service with accessible endpoints.
+The PlantUML source for this diagram is maintained in:
+```
+docs/diagrams/GitHub_Azure_CI-CD.puml
+```
+
+This ensures the diagram can be updated easily from its source.
