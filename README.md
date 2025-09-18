@@ -79,7 +79,12 @@ This opens a browser window for authentication.
 The directory `.github/workflows/` contains GitHub Actions workflows.
 
 ### Workflow: `.github/workflows/ci-cd.yml`
-This workflow builds the Docker image, pushes it to Azure Container Registry (ACR), and deploys it to Azure Web App for Containers.
+The file `.github/workflows/ci-cd.yml` defines the automation pipeline:
+- It builds the Docker image.
+- Pushes the image to Azure Container Registry (ACR).
+- Deploys the container to Azure Web App for Containers.
+
+This ensures that every push to the `main` branch triggers a build and deploy.
 
 ### Required GitHub Secrets
 - `ACR_LOGIN_SERVER` → e.g. `myregistry.azurecr.io`
@@ -102,8 +107,8 @@ This workflow builds the Docker image, pushes it to Azure Container Registry (AC
 ## Azure Deployment
 With CI/CD configured:
 1. Commit and push to the `main` branch.
-2. GitHub Actions will build and push the Docker image to ACR.
-3. The workflow deploys the container image to your Azure Web App.
+2. The workflow in `.github/workflows/ci-cd.yml` builds and pushes the Docker image to ACR.
+3. The same workflow deploys the container image to your Azure Web App.
 
 ### Verify Deployment
 ```bash
@@ -150,4 +155,30 @@ az webapp config appsettings set \
 
 ---
 
-With these commands, your Azure environment is prepared. The GitHub Actions workflow will then build and deploy the container automatically.
+## CI/CD Flow Diagram (Detailed)
+```plantuml
+@startuml
+actor Developer
+
+rectangle "GitHub" {
+  Developer --> (Commit & Push)
+  (Commit & Push) --> (GitHub Actions Workflow in .github/workflows/ci-cd.yml)
+  (GitHub Actions Workflow in .github/workflows/ci-cd.yml) --> (Docker Build)
+  (Docker Build) --> (Push Image to ACR)
+}
+
+rectangle "Azure" {
+  (Push Image to ACR) --> (Azure Container Registry)
+  (Azure Container Registry) --> (Deploy to Web App)
+  (Deploy to Web App) --> (Azure Web App for Containers)
+  (Azure Web App for Containers) --> (CSIbanRestService Running)
+}
+
+Developer --> (Access Endpoints)
+(Access Endpoints) --> (CSIbanRestService Running)
+@enduml
+```
+
+![GitHub_Azure_CI-CD.svg](docs/diagrams/GitHub_Azure_CI-CD.svg)
+
+This detailed diagram shows each stage: Code commit → GitHub Actions workflow in `.github/workflows/ci-cd.yml` → Docker build → Push to ACR → Deploy to Azure Web App → Running service with accessible endpoints.
